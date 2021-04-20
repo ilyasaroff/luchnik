@@ -15,7 +15,7 @@ $(document).ready(function(){
             $.get("/step/"+last+"/"+next, "", processNom);
         }
         $(this).css('border', '1px solid red');
-        alert(clickId);
+//        alert(clickId);
       });
 
       function processNom(data) {
@@ -25,7 +25,7 @@ $(document).ready(function(){
               }
               var pl1 = data.player1;
               var pl2 = data.player2;
-              $("#mess").append(data.mess+'<br/>');
+              $("#mess").prepend(data.mess+'<br/>');
               //alert (pl1[0][0]);
               for (var i=0; i<5; i++) {
                   $("#"+pl1[i][0]).html("<img src='jpg/red.png'>");

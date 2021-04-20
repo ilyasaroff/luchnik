@@ -1,3 +1,13 @@
+body {
+font-family: "Courier New";
+}
+.class1 {
+float: left;
+}
+.player {
+text-align: center;
+font-weight: bold;
+}
 #map {
 width: 600px;
 height: 600px;
@@ -13,4 +23,10 @@ width: 120px;
 height: 120px;
 display:inline-block;
 margin-left: -4px;
+}
+#mess {
+margin-left: 20px;
+width: 400px;
+height: 550px;
+overflow-y: auto;
 }
