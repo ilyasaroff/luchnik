@@ -1,14 +1,33 @@
 package com.luchnik.luchnik.controller;
 
+import com.luchnik.luchnik.entity.GamePlayer;
+import com.luchnik.luchnik.entity.PlayerSet;
+import com.luchnik.luchnik.entity.User;
 import com.luchnik.luchnik.javaclass.Message;
+import com.luchnik.luchnik.repository.GamePlayerRepository;
+import com.luchnik.luchnik.repository.PlayerSetRepository;
+import com.luchnik.luchnik.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
 
 
 @Controller
 public class MainController {
+    @Autowired
+    private UserService userService;
+    @Autowired
+    GamePlayerRepository gamePlayerRepository;
+    @Autowired
+    PlayerSetRepository playerSetRepository;
     // step - поля (шаги), на которые могут ходить фишки. 0 элемент - текущее положение, остальные элементы - собссно шаги
     int[][] step = {{1, 12, 8}, {2, 11, 9}, {3, 6, 14, 10}, {4, 7, 15}, {5, 8, 14},
                     {6, 13, 3}, {7, 16, 12, 4}, {8, 1, 7, 19, 9, 5}, {9, 2, 8, 14}, {10, 3, 13},
@@ -16,9 +35,12 @@ public class MainController {
                     {16, 7, 23}, {17, 12, 24, 18}, {18, 11, 17, 24, 18}, {18, 11, 17, 21, 25, 19}, {19, 18, 22, 14, 8}, {20, 13, 23},
                     {21, 12, 18}, {22, 13, 19}, {23, 16, 20}, {24, 17, 15}, {25, 18, 14}};
     // начальное положение 1 игрока. 0 элемент - поле фишки, 1 элемент =1, если был поражен соперник, 2 элемент - количество повторных шагов
-    int[][] player1 = {{1, 0, 0}, {2, 0, 0}, {3, 0, 0}, {4, 0, 0}, {5, 0, 0}};
+    int[][] player1_start = {{1, 0, 0}, {2, 0, 0}, {3, 0, 0}, {4, 0, 0}, {5, 0, 0}};
     // начальное положение 2 игрока. 0 элемент - поле фишки, 1 элемент =1, если был поражен соперник, 2 элемент - количество повторных шагов
-    int[][] player2 = {{21, 0, 0}, {22, 0, 0}, {23, 0, 0}, {24, 0, 0}, {25, 0, 0}};
+    int[][] player2_start = {{21, 0, 0}, {22, 0, 0}, {23, 0, 0}, {24, 0, 0}, {25, 0, 0}};
+
+    int[][] player1 = {{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}};
+    int[][] player2 = {{0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}, {0,0,0,0}};;
     // поля, по которым может стрелять 1 игрок
     int[][] firePlayer1 = {{1, 12, 8}, {2, 11, 9}, {3, 6, 14, 10}, {4, 7, 15}, {5, 8, 14},
                             {6, 13, 3}, {7, 16, 12, 4}, {8, 1, 7, 19, 9, 5}, {9, 2, 8, 14}, {10, 3, 13},
@@ -132,7 +154,12 @@ public class MainController {
 
     //смена хода игрока
     void replacePlayer () {
-        if (player == 1) player = 2; else player = 1;
+        if (player == 1) {
+            gamePlayerRepository.updatePlayerByGamePlayer(2, player1Name, player2Name);
+        }
+         else {
+            gamePlayerRepository.updatePlayerByGamePlayer(1, player1Name, player2Name);
+         }
     }
 
     // Стрельба по сопернику
@@ -184,17 +211,103 @@ public class MainController {
         message.setMess(mess);
         return message;
     }
+    Boolean updateData(Principal principal) {
+        List<GamePlayer> listGamePlayer = gamePlayerRepository.findGamePlayerByPlayername(principal.getName(), principal.getName());
+        if (listGamePlayer.size()>0) {
+            GamePlayer gamePlayer;
+            gamePlayer = listGamePlayer.get(0);
+            player1Name = gamePlayer.getPlayer1();
+            player2Name = gamePlayer.getPlayer2();
+            player = gamePlayer.getPlayer();
+            List<PlayerSet> listPlayer1Set = playerSetRepository.findPlayerSetByPlayername(player1Name);
+            for (int i=0; i< listPlayer1Set.size(); i++) {
+                PlayerSet playerSet;
+                playerSet = listPlayer1Set.get(i);
+                player1[i][0] = playerSet.getSet0();
+                player1[i][1] = playerSet.getSet1();
+                player1[i][2] = playerSet.getSet2();
+                player1[i][3] = playerSet.getId();
+            }
+            List<PlayerSet> listPlayer2Set = playerSetRepository.findPlayerSetByPlayername(player2Name);
+            for (int i=0; i< listPlayer2Set.size(); i++) {
+                PlayerSet playerSet;
+                playerSet = listPlayer2Set.get(i);
+                player2[i][0] = playerSet.getSet0();
+                player2[i][1] = playerSet.getSet1();
+                player2[i][2] = playerSet.getSet2();
+                player2[i][3] = playerSet.getId();
+            }
+
+
+            return true;
+        }
+        return false;
+
+    }
+
+    Boolean saveData() {
+        for (int i=0; i<player1.length; i++) {
+            playerSetRepository.updatePlayerSet(player1[i][0], player1[i][1], player1[i][2], player1[i][3], player1Name);
+        }
+        for (int i=0; i<player2.length; i++) {
+            playerSetRepository.updatePlayerSet(player2[i][0], player2[i][1], player2[i][2], player2[i][3], player2Name);
+        }
+        return true;
+    }
+
+    //--------Запуск игры------------------------------------------------
+    int playerCount = 0;
+    String player1Name = "";
+    String player2Name = "";
+    Message startGame (Principal principal) {
+        if (playerCount == 0) {
+            player1Name = principal.getName();
+            playerCount++;
+            return sendMessage("Ожидание второго игрока");
+        }
+        if (player1Name.equals(principal.getName()))
+            return sendMessage("Ожидание второго игрока");
+        GamePlayer gamePlayer = new GamePlayer(player1Name, principal.getName(), 1);
+        gamePlayerRepository.save(gamePlayer);
+        for (int i = 0; i< player1_start.length; i++) {
+            PlayerSet playerSet = new PlayerSet(player1Name, player1_start[i][0], player1_start[i][1], player1_start[i][2]);
+            playerSetRepository.save(playerSet);
+        }
+        for (int i = 0; i< player2_start.length; i++) {
+            PlayerSet playerSet = new PlayerSet(principal.getName(), player2_start[i][0], player2_start[i][1], player2_start[i][2]);
+            playerSetRepository.save(playerSet);
+        }
+        playerCount = 0;
+        return sendMessage("Игра началась. Ход игрока №1");
+
+    }
+    //-------------------------------------------------------------------
 
     @GetMapping("/")
     public String  index() {
+        return "redirect:/luchnik";
+    }
+    @GetMapping("/luchnik")
+    public String  luchnik() {
         return "index";
     }
+
     @GetMapping("/status")
-    public @ResponseBody Message  status() {
+    public @ResponseBody Message  status(Principal principal) {
+        updateData(principal);
         return sendMessage("Ход игрока № "+player);
     }
+
+    @GetMapping("/start")
+    public @ResponseBody Message start(Principal principal) {
+        return startGame(principal);
+    }
+
     @GetMapping("/step/{last}/{next}")
-    public @ResponseBody Message  step(@PathVariable("last") Integer last, @PathVariable("next") Integer next) {
+    public @ResponseBody Message  step(@PathVariable("last") Integer last, @PathVariable("next") Integer next,
+                                       Principal principal) {
+        //Обновляем данные
+        updateData(principal);
         //Проверяем возможность хода
         if ( checkStep(next)) {
             // проверяем ход игрока
@@ -211,14 +324,41 @@ public class MainController {
                     }
                     //-------------------------------
                     replacePlayer();
+                    saveData();
                     return sendMessage("Поражение соперника. Следующий ход игрок №"+player);
                 }
                 //-------------------------------
                 replacePlayer();
+                saveData();
                 return sendMessage("Ход сделан. Следующий ход игрок №"+player);
             }
             return sendMessage("Ошибка хода. Ход игрок №"+player);
         }
         return sendMessage("Ошибка хода. Ход игрок №"+player);
+    }
+
+    //------Все, что касается авторизации------------------------
+    @GetMapping("/login")
+    public  String login() {
+
+        return "login";
+    }
+    @GetMapping("/reg")
+    public String registration(Model model) {
+        //model.addAttribute("userForm", new User());
+
+        return "reg";
+    }
+
+    @PostMapping("/reg")
+    public String addUser(User user, Map<String,Object> model) {
+
+
+        if (!userService.saveUser(user)) {
+            model.put("message", "Пользователь с таким именем или электронной почтой уже существует!");
+            return "reg";
+        }
+
+        return "redirect:/";
     }
 }

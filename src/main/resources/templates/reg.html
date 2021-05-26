@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>Регистрация нового пользователя</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/assets/bootstrap/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" th:href="@{/assets/signin.css}"/>
+    <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
+    <style>
+      .bd-placeholder-img {
+        font-size: 0.8rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+      .a:hover {
+        color: #FF0000;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+</head>
+<body class="text-center">
+    <form class="form-signin" th:action="@{/reg}" method="post">
+        <h1 class="h5 mb-3 font-weight-normal">Регистрация нового пользователя</h1>
+        <p th:text=${message}>
+        <div class="illustration"><i class="icon ion-ios-locked-outline"></i></div>
+        <div class="form-group"><input class="form-control" type="text" name="username" placeholder="Логин"></div>
+        <div class="form-group"><input class="form-control" type="password" name="password" placeholder="Пароль"></div>
+        <div class="form-group"><button class="btn btn-primary btn-block" type="submit">Зарегистрироваться</button></div>
+        <div class="form-group"><a href="/login">Авторизация пользователя</a></div>
+        <p class="mt-5 mb-3 text-muted">&copy; 2021</p>
+    </form>
+</body>
+</html>

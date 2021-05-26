@@ -32,5 +32,10 @@ $(document).ready(function(){
                   $("#"+pl2[i][0]).html("<img src='jpg/black.png'>");
                   }
               }
+      $('#startgame').click(function() {
+      $.get("/start");
+      $.get("/status", "", processNom);
+      return false;
+      });
 
 });
